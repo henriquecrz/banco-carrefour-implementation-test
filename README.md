@@ -42,6 +42,10 @@ Desenvolvimento de uma API escrita em .NET que faz o controle de lançamentos (c
 
 ![Desenho da Solução](https://github.com/henriquecrz/banco-carrefour-implementation-test/blob/main/Desenho%20da%20Solu%C3%A7%C3%A3o.png)
 
+## Testes
+
+![Testes](https://github.com/henriquecrz/banco-carrefour-implementation-test/blob/main/testes.png)
+
 ## Instruções
 
 - Instalar Docker na máquina: https://www.docker.com/products/docker-desktop
