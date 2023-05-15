@@ -11,6 +11,6 @@ namespace api.Data
 
         }
 
-        public DbSet<Entry> Entry { get; set; }
+        public virtual DbSet<Entry> Entry { get; set; }
     }
 }

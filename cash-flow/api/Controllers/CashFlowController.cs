@@ -9,9 +9,8 @@ namespace api.Controllers
     [Route("[controller]")]
     public class CashFlowController : ControllerBase
     {
-        private readonly ApplicationDbContext _applicationDbContext;
-
         private readonly ILogger<CashFlowController> _logger;
+        private readonly ApplicationDbContext _applicationDbContext;
 
         public CashFlowController(
             ILogger<CashFlowController> logger,
@@ -24,7 +23,11 @@ namespace api.Controllers
         [HttpGet(Name = "GetEntries")]
         public async Task<ActionResult<IEnumerable<Entry>>> GetEntries()
         {
-            return await _applicationDbContext.Entry.ToListAsync();
+            var entries = await _applicationDbContext.Entry.ToListAsync();
+
+            _logger.Log(LogLevel.Information, $"Data: {entries}");
+
+            return entries;
         }
 
         [HttpPost(Name = "PostEntry")]
@@ -33,6 +36,8 @@ namespace api.Controllers
             _applicationDbContext.Entry.Add(entry);
 
             await _applicationDbContext.SaveChangesAsync();
+
+            _logger.Log(LogLevel.Information, $"Data: {entry}");
 
             return CreatedAtAction(nameof(GetEntries), new { id = entry.Id }, entry);
         }

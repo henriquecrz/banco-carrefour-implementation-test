@@ -10,9 +10,8 @@ namespace api.Controllers
     [Route("[controller]")]
     public class BalanceController : ControllerBase
     {
-        private readonly ApplicationDbContext _applicationDbContext;
-
         private readonly ILogger<BalanceController> _logger;
+        private readonly ApplicationDbContext _applicationDbContext;
 
         public BalanceController(
             ILogger<BalanceController> logger,
@@ -50,6 +49,8 @@ namespace api.Controllers
                         Value = value
                     };
                 });
+
+            _logger.Log(LogLevel.Information, $"Data: {consolidatedDailyBalance}");
 
             return Ok(consolidatedDailyBalance);
         }
