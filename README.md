@@ -29,6 +29,9 @@ Desenvolvimento de uma API escrita em .NET que faz o controle de lançamentos (c
 - .NET 6.0
 - Entity Framework Core
 - LINQ
+- MSTest
+- Moq
+- Log
 - MySQL
 - Swagger
 - Singleton
@@ -44,15 +47,8 @@ Desenvolvimento de uma API escrita em .NET que faz o controle de lançamentos (c
 - Instalar Docker na máquina: https://www.docker.com/products/docker-desktop
 - Baixar a imagem do MySQL do Docker Hub: docker pull mysql
 - Executar a instância de banco de dados MySQL: docker run --name mysql-container -e MYSQL_ROOT_PASSWORD=a -e MYSQL_DATABASE=cashflow -p 3306:3306 -d mysql
-- No path raiz executar o comando: Update-Database
+- No path raiz executar o comando: EntityFrameworkCore\Update-Database
 - Navegar até o path cash-flow/api/ e executar o comando: dotnet build
 - No mesmo path executar: dotnet run
 - Acessar Swagger: http://localhost:5129/swagger/index.html
-
-## O que falta a ser desenvolvido
-
-- Comunicação (network) entre o container da aplicação e do banco de dados MySQL
-- Mensageria
-- Health check
-- Log
-- Teste de integração
+- Para rodar os testes: dotnet test
