@@ -1,8 +1,7 @@
-﻿namespace api.Utils
+﻿namespace api.Utils;
+
+public enum OperationType
 {
-    public enum OperationType
-    {
-        Credit = 0,
-        Debit = 1,
-    }
+    Credit = 0,
+    Debit = 1,
 }

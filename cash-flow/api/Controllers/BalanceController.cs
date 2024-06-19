@@ -4,55 +4,45 @@ using api.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace api.Controllers
+namespace api.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class BalanceController(
+    ILogger<BalanceController> logger,
+    ApplicationDbContext applicationDbContext) : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class BalanceController : ControllerBase
+    [HttpGet(Name = "GetConsolidatedDailyBalance")]
+    public async Task<ActionResult<IEnumerable<Balance>>> GetConsolidatedDailyBalance(DateTime date)
     {
-        private readonly ILogger<BalanceController> _logger;
-        private readonly ApplicationDbContext _applicationDbContext;
+        var entries = await applicationDbContext.Entry.ToListAsync();
 
-        public BalanceController(
-            ILogger<BalanceController> logger,
-            ApplicationDbContext applicationDbContext)
+        var dailyEntries = entries.Where(entry =>
         {
-            _logger = logger;
-            _applicationDbContext = applicationDbContext;
-        }
+            return entry.Date.Date.Equals(date.Date);
+        });
 
-        [HttpGet(Name = "GetConsolidatedDailyBalance")]
-        public async Task<ActionResult<IEnumerable<Balance>>> GetConsolidatedDailyBalance(DateTime date)
-        {
-            var entries = await _applicationDbContext.Entry.ToListAsync();
+        var groupedCurrency = dailyEntries.GroupBy(entry => entry.Currency);
 
-            var dailyEntries = entries.Where(entry =>
+        var consolidatedDailyBalance = groupedCurrency
+            .Select(group =>
             {
-                return entry.Date.Date.Equals(date.Date);
-            });
-
-            var groupedCurrency = dailyEntries.GroupBy(entry => entry.Currency);
-
-            var consolidatedDailyBalance = groupedCurrency
-                .Select(group =>
+                var value = group.Aggregate((decimal)0, (acc, entry) =>
                 {
-                    var value = group.Aggregate((decimal)0, (acc, entry) =>
-                    {
-                        return entry.Type is OperationType.Credit ?
-                            acc + entry.Value :
-                            acc - entry.Value;
-                    });
-
-                    return new Balance()
-                    {
-                        Currency = group.Key,
-                        Value = value
-                    };
+                    return entry.Type is OperationType.Credit ?
+                        acc + entry.Value :
+                        acc - entry.Value;
                 });
 
-            _logger.Log(LogLevel.Information, $"Data: {consolidatedDailyBalance}");
+                return new Balance()
+                {
+                    Currency = group.Key,
+                    Value = value
+                };
+            });
 
-            return Ok(consolidatedDailyBalance);
-        }
+        logger.LogInformation("Data: {ConsolidatedDailyBalance}", consolidatedDailyBalance);
+
+        return Ok(consolidatedDailyBalance);
     }
 }

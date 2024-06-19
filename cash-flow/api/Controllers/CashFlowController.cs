@@ -3,43 +3,33 @@ using api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace api.Controllers
+namespace api.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class CashFlowController(
+    ILogger<CashFlowController> logger,
+    ApplicationDbContext applicationDbContext) : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class CashFlowController : ControllerBase
+    [HttpGet(Name = "GetEntries")]
+    public async Task<ActionResult<IEnumerable<Entry>>> GetEntries()
     {
-        private readonly ILogger<CashFlowController> _logger;
-        private readonly ApplicationDbContext _applicationDbContext;
+        var entries = await applicationDbContext.Entry.ToListAsync();
 
-        public CashFlowController(
-            ILogger<CashFlowController> logger,
-            ApplicationDbContext applicationDbContext)
-        {
-            _logger = logger;
-            _applicationDbContext = applicationDbContext;
-        }
+        logger.LogInformation("Data: {Entries}", entries);
 
-        [HttpGet(Name = "GetEntries")]
-        public async Task<ActionResult<IEnumerable<Entry>>> GetEntries()
-        {
-            var entries = await _applicationDbContext.Entry.ToListAsync();
+        return entries;
+    }
 
-            _logger.Log(LogLevel.Information, $"Data: {entries}");
+    [HttpPost(Name = "PostEntry")]
+    public async Task<ActionResult<Entry>> PostEntry(Entry entry)
+    {
+        applicationDbContext.Entry.Add(entry);
 
-            return entries;
-        }
+        await applicationDbContext.SaveChangesAsync();
 
-        [HttpPost(Name = "PostEntry")]
-        public async Task<ActionResult<Entry>> PostEntry(Entry entry)
-        {
-            _applicationDbContext.Entry.Add(entry);
+        logger.LogInformation("Data: {Entry}", entry);
 
-            await _applicationDbContext.SaveChangesAsync();
-
-            _logger.Log(LogLevel.Information, $"Data: {entry}");
-
-            return CreatedAtAction(nameof(GetEntries), new { id = entry.Id }, entry);
-        }
+        return CreatedAtAction(nameof(GetEntries), new { id = entry.Id }, entry);
     }
 }

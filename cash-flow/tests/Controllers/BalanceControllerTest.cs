@@ -7,53 +7,49 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace tests.Controllers
+namespace tests.Controllers;
+
+[TestClass]
+public class BalanceControllerTest
 {
-    [TestClass]
-    public class BalanceControllerTest
+    [TestMethod]
+    public async Task TestGetConsolidatedDailyBalance()
     {
-        private BalanceController _balanceController;
-        private ApplicationDbContext _dbContext;
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase(databaseName: "TestDb")
+            .Options;
+        var dbContext = new ApplicationDbContext(options);
+        dbContext.Database.EnsureCreated();
 
-        [TestMethod]
-        public async Task TestGetConsolidatedDailyBalance()
+        var date = new DateTime(2023, 5, 13);
+        var entries = new List<Entry>
         {
-            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(databaseName: "TestDb")
-                .Options;
-            _dbContext = new ApplicationDbContext(options);
-            _dbContext.Database.EnsureCreated();
+            new() { Id = 1, Type = OperationType.Credit, Currency = Currency.USD, Value = 100, Description = "a", Date = date },
+            new() { Id = 2, Type = OperationType.Debit, Currency = Currency.EUR, Value = 50, Description = "a", Date = date },
+            new() { Id = 3, Type = OperationType.Credit, Currency = Currency.USD, Value = 200, Description = "a", Date = date },
+            new() { Id = 4, Type = OperationType.Debit, Currency = Currency.EUR, Value = 75, Description = "a", Date = date },
+            new() { Id = 5, Type = OperationType.Credit, Currency = Currency.USD, Value = 300, Description = "a", Date = date },
+        };
+        dbContext.Entry.AddRange(entries);
+        dbContext.SaveChanges();
 
-            var date = new DateTime(2023, 5, 13);
-            var entries = new List<Entry>
-            {
-                new Entry { Id = 1, Type = OperationType.Credit, Currency = Currency.USD, Value = 100, Description = "a", Date = date },
-                new Entry { Id = 2, Type = OperationType.Debit, Currency = Currency.EUR, Value = 50, Description = "a", Date = date },
-                new Entry { Id = 3, Type = OperationType.Credit, Currency = Currency.USD, Value = 200, Description = "a", Date = date },
-                new Entry { Id = 4, Type = OperationType.Debit, Currency = Currency.EUR, Value = 75, Description = "a", Date = date },
-                new Entry { Id = 5, Type = OperationType.Credit, Currency = Currency.USD, Value = 300, Description = "a", Date = date },
-            };
-            _dbContext.Entry.AddRange(entries);
-            _dbContext.SaveChanges();
+        var loggerMock = new Mock<ILogger<BalanceController>>();
 
-            var loggerMock = new Mock<ILogger<BalanceController>>();
+        var balanceController = new BalanceController(loggerMock.Object, dbContext);
 
-            _balanceController = new BalanceController(loggerMock.Object, _dbContext);
+        var result = await balanceController.GetConsolidatedDailyBalance(date);
 
-            var result = await _balanceController.GetConsolidatedDailyBalance(date);
+        var okResult = result.Result as OkObjectResult;
+        var consolidatedBalance = okResult?.Value as IEnumerable<Balance>;
 
-            var okResult = result.Result as OkObjectResult;
-            var consolidatedBalance = okResult?.Value as IEnumerable<Balance>;
+        Assert.IsNotNull(consolidatedBalance);
+        Assert.AreEqual(2, consolidatedBalance.Count());
+        Assert.AreEqual(Currency.USD, consolidatedBalance.First().Currency);
+        Assert.AreEqual(600, consolidatedBalance.First().Value);
+        Assert.AreEqual(Currency.EUR, consolidatedBalance.Last().Currency);
+        Assert.AreEqual(-125, consolidatedBalance.Last().Value);
 
-            Assert.IsNotNull(consolidatedBalance);
-            Assert.AreEqual(2, consolidatedBalance.Count());
-            Assert.AreEqual(Currency.USD, consolidatedBalance.First().Currency);
-            Assert.AreEqual(600, consolidatedBalance.First().Value);
-            Assert.AreEqual(Currency.EUR, consolidatedBalance.Last().Currency);
-            Assert.AreEqual(-125, consolidatedBalance.Last().Value);
-
-            _dbContext.Database.EnsureDeleted();
-            _dbContext.Dispose();
-        }
+        dbContext.Database.EnsureDeleted();
+        dbContext.Dispose();
     }
 }

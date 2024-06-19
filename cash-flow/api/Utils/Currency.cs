@@ -1,9 +1,8 @@
-﻿namespace api.Utils
+﻿namespace api.Utils;
+
+public enum Currency
 {
-    public enum Currency
-    {
-        BRL = 0,
-        USD = 1,
-        EUR = 2,
-    }
+    BRL = 0,
+    USD = 1,
+    EUR = 2,
 }

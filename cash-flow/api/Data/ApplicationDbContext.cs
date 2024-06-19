@@ -1,16 +1,9 @@
 ﻿using api.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace api.Data
+namespace api.Data;
+
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
 {
-    public class ApplicationDbContext : DbContext
-    {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) :
-            base(options)
-        {
-
-        }
-
-        public virtual DbSet<Entry> Entry { get; set; }
-    }
+    public new virtual DbSet<Entry> Entry { get; set; }
 }
