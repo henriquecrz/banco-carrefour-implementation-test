@@ -26,7 +26,7 @@ Desenvolvimento de uma API escrita em .NET que faz o controle de lançamentos (c
 ## Tecnologias
 
 - C#
-- .NET 6.0
+- .NET 8.0
 - Entity Framework Core
 - LINQ
 - MSTest
